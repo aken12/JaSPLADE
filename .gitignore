@@ -1,4 +1,4 @@
-./outputs/*
-./sh_dir/*
-./__pycache__
-./indexing/__pycache__
+outputs/*
+sh_dir/*
+__pycache__
+indexing/__pycache__
