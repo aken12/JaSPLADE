@@ -22,6 +22,8 @@ def get_index_args():
     parser.add_argument('--dataset_split', dest='dataset_split',default=None,type=str)
     parser.add_argument('--dataset_config', dest='dataset_config',default=None,type=str)
     parser.add_argument('--lower_text', dest='lower_text',action='store_true')
+    parser.add_argument('--ignore_first_line', dest='ignore_first_line',action='store_true')
+    
     
     return parser.parse_args()
 
@@ -38,6 +40,7 @@ def get_retrieval_args():
     parser.add_argument('--fp16', dest='fp16',action='store_true')
     parser.add_argument('--encode_is_query', dest='encode_is_query',action='store_true')
     parser.add_argument('--local_data', dest='local_data',action='store_true')
+    parser.add_argument('--lower_text', dest='lower_text',action='store_true')
     parser.add_argument('--title', dest='title',action='store_true')
     parser.add_argument('--use_pseudo_doc', dest='use_pseudo_doc',action='store_true')
     parser.add_argument('--dataset_split', dest='dataset_split',default=None,type=str)
@@ -51,4 +54,5 @@ def get_retrieval_args():
     parser.add_argument("--top_n", type=int, default=100)
     parser.add_argument("--retrieval_output_path", type=str, required=True)
     parser.add_argument("--force_emptying_dir", action="store_true", help="Force to empty the (output) dir.")
+    parser.add_argument('--ignore_first_line', dest='ignore_first_line',action='store_true')
     return parser.parse_args()

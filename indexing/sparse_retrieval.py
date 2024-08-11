@@ -59,33 +59,56 @@ class SparseRetrieval:
             self.numba_index_doc_ids[key] = value
         for key, value in self.sparse_index.index_doc_value.items():
             self.numba_index_doc_values[key] = value
-        
-    
+   
     def retrieve(self, qid2emb):
         res = defaultdict(dict)
-        for qid in tqdm(qid2emb):
-            query_emb = qid2emb[qid]
-            query_emb = query_emb.view(1, -1)
-            row, col = torch.nonzero(query_emb, as_tuple=True)
-            values = query_emb[tensor_to_list(row), tensor_to_list(col)]
-            threshold = 0
-            filtered_indexes, scores = self.numba_score_float(self.numba_index_doc_ids,
+        with open(os.path.join(self.retrieval_output_path), "w") as f:
+            for qid in tqdm(qid2emb):
+                query_emb = qid2emb[qid]
+                query_emb = query_emb.view(1, -1)
+                row, col = torch.nonzero(query_emb, as_tuple=True)
+                values = query_emb[tensor_to_list(row), tensor_to_list(col)]
+                threshold = 0
+                filtered_indexes, scores = self.numba_score_float(self.numba_index_doc_ids,
                                                                 self.numba_index_doc_values,
                                                                 col.cpu().numpy(),
                                                                 values.cpu().numpy().astype(np.float32),
                                                                 threshold=threshold,
                                                                 size_collection=self.sparse_index.nb_docs())
-            # threshold set to 0 by default, could be better
-            filtered_indexes, scores = self.select_topk(filtered_indexes, scores, k=self.top_k)
-            for id_, sc in zip(filtered_indexes, scores):
-                res[str(qid)][str(self.doc_ids[id_])] = float(sc)
-            
-        with open(os.path.join(self.retrieval_output_path, "run.txt"), "w") as f:
-            for qid in res:
-                for rank,did in enumerate(res[qid]):
-                    f.write(os.path.join([qid,"Q0",did,rank+1,res[qid][did],"splade"]))
-                    f.write('\n')
-                    
+                # threshold set to 0 by default, could be better
+                filtered_indexes, scores = self.select_topk(filtered_indexes, scores, k=self.top_k)
+                for id_, sc in zip(filtered_indexes, scores):
+                    res[str(qid)][str(self.doc_ids[id_])] = float(sc)
+                    f.write(f'{qid} {"Q0"} {self.doc_ids[id_]} {len(res[str(qid)])} {sc} {"splade"}\n')
+
         print("Write the retrieval result to {} successfully.".format(self.retrieval_output_path))
 
-        return res
+        return res     
+    
+    # def retrieve(self, qid2emb):
+    #     res = defaultdict(dict)
+    #     for qid in tqdm(qid2emb):
+    #         query_emb = qid2emb[qid]
+    #         query_emb = query_emb.view(1, -1)
+    #         row, col = torch.nonzero(query_emb, as_tuple=True)
+    #         values = query_emb[tensor_to_list(row), tensor_to_list(col)]
+    #         threshold = 0
+    #         filtered_indexes, scores = self.numba_score_float(self.numba_index_doc_ids,
+    #                                                             self.numba_index_doc_values,
+    #                                                             col.cpu().numpy(),
+    #                                                             values.cpu().numpy().astype(np.float32),
+    #                                                             threshold=threshold,
+    #                                                             size_collection=self.sparse_index.nb_docs())
+    #         # threshold set to 0 by default, could be better
+    #         filtered_indexes, scores = self.select_topk(filtered_indexes, scores, k=self.top_k)
+    #         for id_, sc in zip(filtered_indexes, scores):
+    #             res[str(qid)][str(self.doc_ids[id_])] = float(sc)
+            
+    #     with open(os.path.join(self.retrieval_output_path, "run.txt"), "w") as f:
+    #         for qid in res:
+    #             for rank,did in enumerate(res[qid]):
+    #                 f.write(f'{qid}\t{"Q0"}\t{did}\t{rank+1}\t{res[qid][did]}\t{"splade"}\n')
+                    
+    #     print("Write the retrieval result to {} successfully.".format(self.retrieval_output_path))
+
+    #     return res

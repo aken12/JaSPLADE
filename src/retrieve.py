@@ -49,6 +49,7 @@ def sparse_retrieve_and_evaluate(args):
             inputs = {k: v.to(args.device) for k, v in batch[1].items()}
             batch_query_embs = model.encode(inputs,is_q=True)
             qids = batch[0] 
+            batch_query_embs = batch_query_embs.cpu()
             for i, qid in enumerate(qids):
                 qid2emb[qid] = batch_query_embs[i]
     
@@ -57,19 +58,25 @@ def sparse_retrieve_and_evaluate(args):
     retriever = SparseRetrieval(args.index_dir_path, args.retrieval_output_path, dim_voc, args.top_n)
     result = retriever.retrieve(qid2emb)
     
-    # evaluate
-    eval_kwargs = {"run_file":result, 
-                   "qrel_file": args.qrel_file, 
-                   "rel_threshold": 1}
-    print_res(**eval_kwargs)
+    if os.path.exists(args.qrel_file):
+        # evaluate
+        eval_kwargs = {"run":result, 
+                    "qrel_file": args.qrel_file, 
+                    "rel_threshold": 1}
+        print_res(**eval_kwargs)
 
-    logger.info("Evaluation OK!")
+        logger.info("Evaluation OK!")
 
 if __name__ == "__main__":
     args = get_retrieval_args()
     
-    check_dir_exist_or_build([args.retrieval_output_path], force_emptying=args.force_emptying_dir)
-    json_dumps_arguments(os.path.join(args.retrieval_output_path, "parameters.txt"), args)
+    # check_dir_exist_or_build([os.path.dirname(args.retrieval_output_path)], force_emptying=args.force_emptying_dir)
+    
+    os.makedirs(os.path.dirname(args.retrieval_output_path),exist_ok=True)
+    
+    paramter_file = args.retrieval_output_path.split(".")[-2]
+    # json_dumps_arguments(os.path.join(args.retrieval_output_path, "parameters.txt"), args)
+    json_dumps_arguments(f'{paramter_file}_param.txt', args)
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     args.device = device

@@ -24,8 +24,9 @@ def print_res(run, qrel_file, rel_threshold=1):
     runs = {}
     runs_top10 = {}
     
+    
     for line in qrel_data:
-        line = line.strip().split()
+        line = line.strip().split('\t')
         query = line[0]
         passage = line[2]
         rel = int(line[3])
@@ -44,20 +45,25 @@ def print_res(run, qrel_file, rel_threshold=1):
         qrels[query][passage] = rel
     
     for line in run_data:
-        line = line.split(" ")
+        # line = line.split("\t")
+        line = line.strip().split(' ')
         query = line[0]
         passage = line[2]
-        rel = 1000 - int(line[3])
+        # rel = 1000 - int(line[3])
+        rel = float(line[4])
         if query not in runs:
             runs[query] = {}
         runs[query][passage] = rel
+    
+    for q in runs:
+        passages = runs[q]
+        sorted_passages = sorted(passages.items(), key=lambda x: x[1], reverse=True)
+        runs[q] = {passage: rel for passage, rel in sorted_passages}
 
-        rank = int(line[3])
-        if rank > 10:
-            continue
-        if query not in runs_top10:
-            runs_top10[query] = {}
-        runs_top10[query][passage] = rel
+    runs_top10 = {}
+    for q in runs:
+        top_passages = list(runs[q].items())[:10]
+        runs_top10[q] = {passage: rel for passage, rel in top_passages}
 
     # for qid in run_data:
     #     sorted_passages = sorted(run_data[qid].items(), key=lambda x: x[1], reverse=True)
