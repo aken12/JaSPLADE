@@ -3,3 +3,4 @@ outputs/*
 sh_dir/*
 __pycache__
 indexing/__pycache__
+src/sample.py

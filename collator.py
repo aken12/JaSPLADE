@@ -39,27 +39,3 @@ class EncodeCollator:
         )
 
         return text_ids, collated_texts
-
-@dataclass
-class monoT5Collator:
-    data_args: argparse.Namespace
-    tokenizer: PreTrainedTokenizer
-
-    def __call__(self, features):
-        all_texts = []
-        for f in features:
-            all_texts.append(f[0])
-            all_texts.append(f[2])
-        all_labels = []
-        for f in features:
-            all_labels.append(f[1])
-            all_labels.append(f[3])
-
-        tokenized = self.tokenizer(all_texts, padding=True, truncation='longest_first', return_tensors='pt', max_length=212)
-
-        labels_tokenized = self.tokenizer(all_labels, return_tensors='pt')['input_ids']
-
-        tokenized['labels'] = labels_tokenized
-
-
-        return tokenized

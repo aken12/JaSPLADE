@@ -21,8 +21,7 @@ def indexing(args):
 
     encode_collator = EncodeCollator(data_args=args,tokenizer=tokenizer)
 
-    if args.collection_path != None:
-        args.dataset_name = args.collection_path
+
     encode_dataset = EncodeDataset(data_args=args)
 
     encode_loader = DataLoader(
@@ -35,7 +34,7 @@ def indexing(args):
     )
 
     dim_voc = model.transformer_rep.transformer.config.vocab_size
-    sparse_index = IndexDictOfArray(args.index_output_path, dim_voc=dim_voc, force_new=True)    
+    sparse_index = IndexDictOfArray(args.index_dir, dim_voc=dim_voc, force_new=True)    
     count = 0
     doc_ids = []
     logger.info("index process started...")
@@ -56,7 +55,7 @@ def indexing(args):
                                                n_docs=len(batch_ids))
 
     sparse_index.save()
-    pickle.dump(doc_ids, open(oj(args.index_output_path, "doc_ids.pkl"), "wb"))
+    pickle.dump(doc_ids, open(oj(args.index_dir, "doc_ids.pkl"), "wb"))
     logger.info("Done iterating over the corpus!")
     logger.info("index contains {} posting lists".format(len(sparse_index)))
     logger.info("index contains {} documents".format(len(doc_ids)))

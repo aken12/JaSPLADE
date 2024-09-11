@@ -19,8 +19,8 @@ class IndexDictOfArray:
             self.filename = os.path.join(self.index_path, filename)
             if os.path.exists(self.filename) and not force_new:
                 print("index already exists, loading...")
-    
                 self.file = h5py.File(self.filename, "r")
+
                 if dim_voc is not None:
                     dim = dim_voc
                 else:

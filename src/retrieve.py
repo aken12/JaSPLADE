@@ -14,7 +14,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from utils import json_dumps_arguments,check_dir_exist_or_build
-from src.evaluate import print_res
+from src.evaluate import run_evaluate
 from dataset import EncodeDataset
 from collator import EncodeCollator
 from models.splade import Splade
@@ -55,27 +55,26 @@ def sparse_retrieve_and_evaluate(args):
     
     # retrieve
     dim_voc = model.output_dim
-    retriever = SparseRetrieval(args.index_dir_path, args.retrieval_output_path, dim_voc, args.top_n)
+    retriever = SparseRetrieval(args.index_dir, args.retrieval_output_path, dim_voc, args.top_n)
     result = retriever.retrieve(qid2emb)
     
-    if os.path.exists(args.qrel_file):
-        # evaluate
-        eval_kwargs = {"run":result, 
-                    "qrel_file": args.qrel_file, 
-                    "rel_threshold": 1}
-        print_res(**eval_kwargs)
-
-        logger.info("Evaluation OK!")
+    if args.qrel_file:
+        if os.path.exists(args.qrel_file):
+            # evaluate
+            eval_kwargs = {"run":result, 
+                        "qrel_file": args.qrel_file, 
+                        "rel_threshold": 1}
+            run_evaluate(**eval_kwargs)
+            logger.info("Evaluation OK!")
 
 if __name__ == "__main__":
     args = get_retrieval_args()
     
-    # check_dir_exist_or_build([os.path.dirname(args.retrieval_output_path)], force_emptying=args.force_emptying_dir)
+    args.collection_path = args.query_path
     
     os.makedirs(os.path.dirname(args.retrieval_output_path),exist_ok=True)
     
     paramter_file = args.retrieval_output_path.split(".")[-2]
-    # json_dumps_arguments(os.path.join(args.retrieval_output_path, "parameters.txt"), args)
     json_dumps_arguments(f'{paramter_file}_param.txt', args)
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

@@ -10,7 +10,7 @@ from indexing.index_array import IndexDictOfArray
 from utils import tensor_to_list
 
 import torch
-
+from models.splade import Splade
 
 class SparseRetrieval:
     """retrieval from SparseIndexing

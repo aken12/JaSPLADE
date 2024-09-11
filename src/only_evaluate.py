@@ -14,18 +14,7 @@ from tqdm import tqdm
 import torch
 from torch.utils.data import DataLoader
 
-from utils import json_dumps_arguments,check_dir_exist_or_build
-from src.evaluate import print_res
-
-def evaluate(args):    
-    # evaluate
-    eval_kwargs = {"run": os.path.join(args.retrieval_output_path,"run.txt"),
-                   "qrel_file": args.qrel_file, 
-                   "rel_threshold": 1}
-    print_res(**eval_kwargs)
-
-    logger.info("Evaluation OK!")
-
+from src.evaluate import run_evaluate
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -34,11 +23,14 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # json_dumps_arguments(os.path.join(args.retrieval_output_path, "parameters.txt"), args)
-    
-    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    # args.device = device
     args.start_running_time = time.asctime(time.localtime(time.time()))
     logger.info("---------------------The arguments are:---------------------")
     logger.info(args)
-    evaluate(args)
+    
+    eval_kwargs = {"run": os.path.join(args.retrieval_output_path,"run.txt"),
+                   "qrel_file": args.qrel_file, 
+                   "rel_threshold": 1}
+    
+    run_evaluate(**eval_kwargs)
+    
+    logger.info("Evaluation OK!")
